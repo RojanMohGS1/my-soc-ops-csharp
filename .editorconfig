@@ -1,0 +1,18 @@
+root = true
+
+# Apply strict rules only to main project sources
+[SocOps/**.cs]
+dotnet_diagnostic.CS0168.severity = error
+dotnet_diagnostic.CS0219.severity = error
+dotnet_diagnostic.IDE0059.severity = error
+dotnet_diagnostic.CS1998.severity = error
+
+[SocOps/**.razor]
+dotnet_diagnostic.CS1998.severity = error
+
+# Relax rules for solution example folders
+[/.solutions/**.cs]
+dotnet_analyzer_diagnostic.severity = none
+
+# Default analyzer severity
+dotnet_analyzer_diagnostic.severity = suggestion

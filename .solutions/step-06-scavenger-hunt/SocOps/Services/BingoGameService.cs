@@ -1,6 +1,6 @@
-using SocOps.Models;
 using System.Text.Json;
 using Microsoft.JSInterop;
+using SocOps.Models;
 
 namespace SocOps.Services;
 
@@ -33,7 +33,7 @@ public class BingoGameService
     public void StartGame(GameMode mode = GameMode.Bingo)
     {
         CurrentGameMode = mode;
-        
+
         if (mode == GameMode.Bingo)
         {
             Board = BingoLogicService.GenerateBoard();
@@ -44,7 +44,7 @@ public class BingoGameService
         {
             CurrentGameState = GameState.ScavengerHunt;
         }
-        
+
         ShowBingoModal = false;
         _ = SaveGameStateAsync();
         NotifyStateChanged();

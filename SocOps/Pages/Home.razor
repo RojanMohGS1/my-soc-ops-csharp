@@ -6,6 +6,13 @@
 
 <PageTitle>Soc Ops - Social Bingo</PageTitle>
 
+<div class="p-3 bg-white border-b border-gray-200">
+    <div class="max-w-md mx-auto flex items-center gap-3">
+        <input @bind="_playerName" placeholder="Your name (optional)" class="px-3 py-2 border rounded w-full" />
+        <button class="bg-accent text-white px-3 py-2 rounded" @onclick="SavePlayer">Save</button>
+    </div>
+</div>
+
 @if (GameService.CurrentGameState == GameState.Start)
 {
     <StartScreen OnStart="@GameService.StartGame" />
@@ -17,7 +24,9 @@ else
         WinningSquareIds="@GameService.WinningSquareIds"
         HasBingo="@(GameService.CurrentGameState == GameState.Bingo)"
         OnSquareClick="@GameService.HandleSquareClick"
-        OnReset="@GameService.ResetGame" />
+        OnReset="@GameService.ResetGame"
+        ProgressPercent="@( (int)GameService.ProgressPercent )"
+        Player="@GameService.Player" />
 
     @if (GameService.ShowBingoModal)
     {
@@ -35,5 +44,23 @@ else
     public void Dispose()
     {
         GameService.OnStateChanged -= StateHasChanged;
+    }
+    private string _playerName = string.Empty;
+
+    private async Task SavePlayer()
+    {
+        if (!string.IsNullOrWhiteSpace(_playerName))
+        {
+            var meta = new PlayerMetadata { Name = _playerName, Avatar = GetInitials(_playerName) };
+            await GameService.SetPlayerAsync(meta);
+        }
+    }
+
+    private string GetInitials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "?";
+        if (parts.Length == 1) return parts[0].Substring(0, 1).ToUpper();
+        return (parts[0].Substring(0, 1) + parts[^1].Substring(0, 1)).ToUpper();
     }
 }

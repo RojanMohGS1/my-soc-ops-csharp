@@ -4,6 +4,7 @@
     @onclick="OnClick"
     disabled="@Square.IsFreeSpace"
     class="@GetCssClasses()"
+    style="@(Square.IsMarked && !Square.IsFreeSpace ? $"animation-delay:{(Square.Id % 5) * 60}ms;" : string.Empty)"
     aria-pressed="@Square.IsMarked"
     aria-label="@(Square.IsFreeSpace ? "Free space" : Square.Text)">
     <span class="wrap-break-word hyphens-auto">@Square.Text</span>
@@ -30,7 +31,7 @@
         var stateClasses = Square.IsMarked
             ? IsWinning
                 ? "bg-amber-200 border-amber-400 text-amber-900"
-                : "bg-marked border-marked-border text-green-800"
+                : "bg-marked border-marked-border text-green-800 reveal"
             : "bg-white text-gray-700 active:bg-gray-100";
 
         var freeSpaceClasses = Square.IsFreeSpace ? "font-bold text-sm" : "";

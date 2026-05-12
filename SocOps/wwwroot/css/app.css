@@ -226,3 +226,16 @@ button:disabled {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+
+/* Gamified UI tokens */
+.progress-root { background: #f3f4f6; }
+.progress-fill { background: linear-gradient(90deg, #2563eb, #06b6d4); transition: width 300ms ease; }
+.avatar { font-weight: 600; }
+
+/* Reveal animation for marked squares */
+.reveal { animation: pop-in 280ms cubic-bezier(0.2,0.9,0.2,1) both; }
+@keyframes pop-in {
+    0% { transform: scale(0.85); opacity: 0; }
+    60% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}

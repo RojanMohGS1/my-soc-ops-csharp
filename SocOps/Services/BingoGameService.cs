@@ -7,7 +7,7 @@ namespace SocOps.Services;
 public class BingoGameService
 {
     private const string STORAGE_KEY = "bingo-game-state";
-    private const int STORAGE_VERSION = 1;
+    private const int STORAGE_VERSION = 2;
 
     private readonly IJSRuntime _jsRuntime;
 
@@ -16,6 +16,11 @@ public class BingoGameService
     public BingoLine? WinningLine { get; private set; }
     public HashSet<int> WinningSquareIds => BingoLogicService.GetWinningSquareIds(WinningLine);
     public bool ShowBingoModal { get; private set; }
+
+    // Gamified additions
+    public int MarkedCount => Board?.Count(b => b.IsMarked) ?? 0;
+    public double ProgressPercent => Board == null || Board.Count == 0 ? 0 : Math.Round((MarkedCount / (double)Board.Count) * 100, 1);
+    public PlayerMetadata? Player { get; private set; }
 
     public event Action? OnStateChanged;
 
@@ -52,6 +57,8 @@ public class BingoGameService
                 WinningLine = bingo;
                 CurrentGameState = GameState.Bingo;
                 ShowBingoModal = true;
+                // trigger confetti via JS interop (fire-and-forget)
+                _ = _jsRuntime.InvokeVoidAsync("confetti.start");
             }
         }
 
@@ -75,6 +82,13 @@ public class BingoGameService
         NotifyStateChanged();
     }
 
+    public async Task SetPlayerAsync(PlayerMetadata? player)
+    {
+        Player = player;
+        await SaveGameStateAsync();
+        NotifyStateChanged();
+    }
+
     private void NotifyStateChanged() => OnStateChanged?.Invoke();
 
     private async Task LoadGameStateAsync()
@@ -85,11 +99,14 @@ public class BingoGameService
             if (!string.IsNullOrEmpty(saved))
             {
                 var data = JsonSerializer.Deserialize<StoredGameData>(saved);
-                if (data != null && data.Version == STORAGE_VERSION)
+                if (data != null)
                 {
+                    // Accept older versions when possible, but persist with current version
                     CurrentGameState = data.GameState;
-                    Board = data.Board;
+                    Board = data.Board ?? new List<BingoSquareData>();
                     WinningLine = data.WinningLine;
+                    Player = data.Player;
+                    ShowBingoModal = data.ShowBingoModal;
                 }
             }
         }
@@ -108,7 +125,9 @@ public class BingoGameService
                 Version = STORAGE_VERSION,
                 GameState = CurrentGameState,
                 Board = Board,
-                WinningLine = WinningLine
+                WinningLine = WinningLine,
+                Player = Player,
+                ShowBingoModal = ShowBingoModal
             };
             var json = JsonSerializer.Serialize(data);
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", STORAGE_KEY, json);
@@ -125,5 +144,7 @@ public class BingoGameService
         public GameState GameState { get; set; }
         public List<BingoSquareData> Board { get; set; } = new();
         public BingoLine? WinningLine { get; set; }
+        public PlayerMetadata? Player { get; set; }
+        public bool ShowBingoModal { get; set; }
     }
 }

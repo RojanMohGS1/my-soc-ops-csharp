@@ -2,7 +2,12 @@
     <div class="bg-white rounded-xl p-6 max-w-xs w-full text-center shadow-xl animate-[bounce_0.5s_ease-out]">
         <div class="text-5xl mb-4">🎉</div>
         <h2 class="text-3xl font-bold text-amber-500 mb-2">BINGO!</h2>
-        <p class="text-gray-600 mb-6">You completed a line!</p>
+        <p class="text-gray-600 mb-4">You completed a line!</p>
+
+        <div class="space-y-3 mb-3">
+            <button @onclick="OnCopyLink" class="w-full bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg">Copy Share Link</button>
+            <button @onclick="OnTweet" class="w-full bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg">Share on Twitter</button>
+        </div>
 
         <button
             @onclick="OnDismiss"
@@ -15,4 +20,42 @@
 @code {
     [Parameter]
     public EventCallback OnDismiss { get; set; }
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = null!;
+
+    private bool _didFireConfetti;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_didFireConfetti)
+        {
+            _didFireConfetti = true;
+            try
+            {
+                await JS.InvokeVoidAsync("confetti.start");
+            }
+            catch { }
+        }
+    }
+
+    private async Task OnCopyLink()
+    {
+        try
+        {
+            var url = await JS.InvokeAsync<string>("interop.getShareUrl");
+            await JS.InvokeVoidAsync("interop.copyText", url);
+        }
+        catch { }
+    }
+
+    private async Task OnTweet()
+    {
+        try
+        {
+            var url = await JS.InvokeAsync<string>("interop.getShareUrl");
+            await JS.InvokeVoidAsync("interop.openTweet", url);
+        }
+        catch { }
+    }
 }
